@@ -1,6 +1,7 @@
 // Represents Conway's cell
 struct Cell {
 	state: char,
+	isAlive: bool,
 	index: (usize,usize),
 	neighbors: Vec<usize>,
 }
@@ -14,9 +15,12 @@ struct Grid {
 
 // Defining Cell's functions
 impl Cell {
+
+	// Constructor for instantiating a new Cell
 	fn new(c: char, pair: (usize,usize)) -> Cell {
 		Cell {
 			state: c,
+			isAlive: false,
 			index: pair,
 			neighbors: vec![],
 		}
@@ -30,6 +34,8 @@ impl Cell {
 
 // Defining Grid's Functions
 impl Grid {
+
+	// Constructor for instantiating a new Grid
 	fn new(cols: i32, rows: i32) -> Grid {
 		Grid {
 			cols: cols,
@@ -42,6 +48,7 @@ impl Grid {
 	// Initializes the vector with default values
 	// Using a for loop fill up the vector with Cells
 	// Each Cell gets their 2d array index calculated
+	// Neighbors for each cell are calculated
 	fn initialize(&mut self) {
 		let cols = self.cols as usize;
 		let rows = self.rows as usize;
@@ -50,7 +57,7 @@ impl Grid {
 
 		for a in 0..(cols * rows) {
 			let mut index: (usize, usize) = (x, y);
-			let mut adjacentCells: Vec<usize> = vec![];
+			let mut adjacentCells: Vec<usize> = self.findNeighbors(index);
 			self.data.push(Cell::new(' ', index));
 			self.data[a as usize].neighbors = adjacentCells;
 
@@ -63,15 +70,60 @@ impl Grid {
 		}
 	}
 
+	// Providing the 2d index of a Cell to find and mark its neighbors.
+	fn showNeighbors(&mut self, twoDIndex: (usize, usize)) {
+		let index: usize = self.getIndexConversion(twoDIndex);
+
+		let neighbors = self.data[index].neighbors.to_vec();
+		let length: usize = neighbors.len();
+
+		for a in 0..length {
+			let adjacentIndex: usize = neighbors[a];
+			self.data[adjacentIndex].state = '=';
+		}
+	}
+
+	//TODO: Only works for n x n matrix right now.
+	// Returns a vector containing the 1d indices of the neighbors
+	// of a Cell using the Cell's the 2d index.
+	fn findNeighbors(&mut self, twoDIndex: (usize, usize)) -> Vec<usize> {
+		let mut adjacentCells: Vec<usize> = vec![];		
+		let (x,y) = twoDIndex;
+		let mut a: i32 = -1;
+
+		// Iterates for neighbors (x +/- 1, y +/- 1)
+		while a != 2 {
+			let mut b: i32 = -1;
+			while b != 2 {
+				// Skips 1 case when (a,b) = (0,0)
+				if (a != 0 || b != 0) {
+					// Checks to make sure (x+a,y+b) cannot reach
+					// IndexOutOfBounds (-1,-1) or (row, col)
+					if ( ((x as i32 + a) >= 0) && ((y as i32 + b) >= 0) 
+					&& (((x as i32) + a) < self.rows) 
+					&& (((y as i32) + b) < self.cols)) {
+						
+						let num: (usize, usize) = 
+						((x as i32 + a) as usize,(y as i32 + b) as usize);
+
+						adjacentCells.push(self.getIndexConversion(num));
+					}
+				}
+				b+= 1;
+			}
+			a+= 1;
+		}
+		adjacentCells
+	}
+
 	// Converts a Cell's 2d index into a 1d index number
-	// Formula: i = x * COL_SIZE + y
 	fn getIndexConversion(&mut self, twoDIndex: (usize, usize)) -> usize {
 		let (x, y) = twoDIndex;
 		let index: usize = x * (self.cols as usize) + y;
 		index
 	}
 
-	// Method to print all states of Cells in the vector
+	// Prints all states of Cells in the vector
 	// Lines separated on every 10th iteration to emulate grid
 	fn printAllStates(&mut self) {
 		let total = self.cols * self.rows;
@@ -109,18 +161,14 @@ impl Grid {
 			thread::sleep(wait);
 		}
 	}
-
-	//TODO: Retrieves a single Cell's adjacent neighbors
-	fn getCellNeighbors(&mut self, index: usize) -> Vec<usize>{
-		let a: Vec<usize> = vec![];
-		a
-	}
 }
 
 fn main() {
-	let mut world = Grid::new(3,7);
+	let mut world = Grid::new(10,10);
 	world.initialize();
-	world.printAllIndices();
+//	world.printAllIndices();
+	world.showNeighbors((5,5));
+	world.printAllStates();
 //	world.printAllStates();
 //	world.testRender();
 }
