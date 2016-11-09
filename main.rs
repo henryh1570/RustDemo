@@ -3,6 +3,7 @@
 struct Cell {
 	state: char,
 	isAlive: bool,
+	nextLife: bool,
 	index: (usize,usize),
 	neighbors: Vec<usize>,
 }
@@ -23,6 +24,7 @@ impl Cell {
 		Cell {
 			state: c,
 			isAlive: false,
+			nextLife: false,
 			index: pair,
 			neighbors: vec![],
 		}
@@ -136,6 +138,43 @@ impl Grid {
 		let (x, y) = twoDIndex;
 		let index: usize = x * (self.cols as usize) + y;
 		index
+	}
+
+	// Simulate life and death in the Grid for Cells
+	// Rule 1: Any live cell with < 2 live neighbors dies
+	// Rule 2: Any live cell with 2 or 3 live neighbors lives
+	// Rule 3: Any live cell with > 3 live neighbors dies
+	// Rule 4: Any dead cell with = 3 live neighbors becomes alive
+	fn live(&mut self, index: usize) {
+		let neighbors = self.data[index].neighbors.to_vec();
+		let length: usize = neighbors.len();
+		let mut neighborsAlive: i32 = 0;
+
+		// Count all neighbors of the Cell that are alive
+		for a in 0..length {
+			let adjacentIndex: usize = neighbors[a];
+			if self.data[adjacentIndex].isAlive == true {
+				neighborsAlive += 1;
+			}
+		}
+
+		// Apply Conway's Life Rules
+		if self.data[index].isAlive == true {
+			// Rule 1: Live becomes dead; under-population
+			if neighborsAlive < 2 {
+				self.data[index].isAlive = false;				
+			} else if neighborsAlive < 4 {
+			// Rule 2: Live stays alive; next generation
+			} else {
+			// Rule 3: Live becomes dead; over-population
+				self.data[index].isAlive = false;
+			}
+		} else {
+			// Rule 4: Dead becomes alive; reproduction
+			if neighborsAlive == 3 {
+				self.data[index].isAlive = true;
+			}
+		}
 	}
 
 	// Prints all current states of Cells in the vector
