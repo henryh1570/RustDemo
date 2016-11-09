@@ -1,7 +1,7 @@
 // Represents Conway's cell
 struct Cell {
-	index: (usize,usize),
 	state: char,
+	index: (usize,usize),
 	neighbors: Vec<usize>,
 }
 
@@ -16,8 +16,8 @@ struct Grid {
 impl Cell {
 	fn new(c: char, pair: (usize,usize)) -> Cell {
 		Cell {
-			index: pair,
 			state: c,
+			index: pair,
 			neighbors: vec![],
 		}
 	}
@@ -50,9 +50,8 @@ impl Grid {
 
 		for a in 0..(cols * rows) {
 			let mut index: (usize, usize) = (x, y);
-
-			self.data.push(Cell::new(' ', index));
 			let mut adjacentCells: Vec<usize> = vec![];
+			self.data.push(Cell::new(' ', index));
 			self.data[a as usize].neighbors = adjacentCells;
 
 			y += 1;
@@ -62,6 +61,14 @@ impl Grid {
 				y = 0;
 			}
 		}
+	}
+
+	// Converts a Cell's 2d index into a 1d index number
+	// Formula: i = x * COL_SIZE + y
+	fn getIndexConversion(&mut self, twoDIndex: (usize, usize)) -> usize {
+		let (x, y) = twoDIndex;
+		let index: usize = x * (self.cols as usize) + y;
+		index
 	}
 
 	// Method to print all states of Cells in the vector
@@ -111,9 +118,9 @@ impl Grid {
 }
 
 fn main() {
-	let mut world = Grid::new(10,10);
+	let mut world = Grid::new(3,7);
 	world.initialize();
 	world.printAllIndices();
-	world.printAllStates();
-	world.testRender();
+//	world.printAllStates();
+//	world.testRender();
 }
