@@ -85,16 +85,18 @@ impl Grid {
 		}
 	}
 
-	// Finds a Cell's neighbors, marks them, and reveals them.
+	// Finds a Cell's neighbors, marks them alive, and reveals them.
 	fn showNeighbors(&mut self, twoDIndex: (usize, usize)) {
 		let index: usize = self.getIndexConversion(twoDIndex);
 
 		let neighbors = self.data[index].neighbors.to_vec();
 		let length: usize = neighbors.len();
+		self.killAllCells();
 
 		for a in 0..length {
 			let adjacentIndex: usize = neighbors[a];
 			self.data[adjacentIndex].state = self.liveState;
+			self.data[adjacentIndex].isAlive = true;
 		}
 		self.printAllStates();
 	}
@@ -138,7 +140,7 @@ impl Grid {
 	}
 
 	// Simulate life and death in the Grid for Cells
-	// Updats the nextLife bool
+	// Updates the nextLife bool in a Cell
 	// Rule 1: Any live cell with < 2 live neighbors dies
 	// Rule 2: Any live cell with 2 or 3 live neighbors lives
 	// Rule 3: Any live cell with > 3 live neighbors dies
@@ -217,7 +219,7 @@ impl Grid {
 		}
 	}
 
-	// Returns all Cells back to dead state.
+	// Sets all Cell's nextLife to false and updates state.
 	fn killAllCells(&mut self) {
 		for a in 0..self.data.len() {
 			self.data[a as usize].nextLife = false;
@@ -240,6 +242,32 @@ impl Grid {
 			thread::sleep(wait);
 		}
 	}
+
+	// An entire "tick" of the Grid
+	fn renderAll(&mut self) {
+		use std::{thread,time};
+		let wait = time::Duration::from_millis(155);
+
+		// Simultaneously impose all Cells to Conway's Life Rules
+		for a in 0..(self.cols * self.rows) {
+			self.conwaysLife(a as usize);
+		}
+		// Now update state and isAlive for all Cells
+		self.updateCells();
+		// And finally show the Grid's look
+		self.printAllStates();
+		// Slow down the printing
+		thread::sleep(wait);
+	}
+
+	// Takes in an array of 1d indices to set true in the Grid
+	fn seedGrid(&mut self, indices: &[i32]) {
+		let length = indices.len();
+		for a in 0..length {
+			self.data[indices[a] as usize].nextLife = true;
+		}
+		self.updateCells();
+	}
 }
 
 // World is a 1d vector treated as a 2d vector containing Cells.
@@ -252,15 +280,21 @@ impl Grid {
 // Then the living cells will move in some way via printAllStates. Repeat.
 fn main() {
 	let mut world = Grid::new(10,10,'0',' ');
+	let seed: [i32; 6] = [88, 33, 32, 34, 68,78];
 	world.initialize();
+	world.seedGrid(&seed);
+	world.printAllStates();
+	for a in 0..100 {
+		world.renderAll();
+	}
 //	Testing methods below
 //	=====================
 //	world.printAllIndices();
-	world.testRender();
-	world.killAllCells();
-	world.updateCells();
-	world.printAllStates();
-	world.showNeighbors((2,2));
-	world.conwaysLife(55);
+//	world.printAllStates();
+//	world.testRender();
+//	world.killAllCells();
+//	world.printAllStates();
+//	world.showNeighbors((4,4));
+//	world.conwaysLife(55);
 //	world.showNeighborIndices((2,2));
 }
