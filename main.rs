@@ -1,5 +1,7 @@
 // Represents Conway's cell
 // Tracks life, 2d index, neighbors
+#[allow(non_snake_case)]
+#[allow(dead_code)]
 struct Cell {
 	state: char,
 	isAlive: bool,
@@ -10,9 +12,11 @@ struct Cell {
 
 // Grid is a 1d vector of size cols * rows
 // Every element is a Conway Cell
+#[allow(non_snake_case)]
 struct Grid {
 	rows: i32,
 	cols: i32,
+	waitTime: u64,
 	data: Vec<Cell>,
 	liveState: char,
 	deadState: char,
@@ -34,13 +38,15 @@ impl Cell {
 }
 
 // Defining Grid's Functions
+#[allow(non_snake_case)]
 impl Grid {
 
 	// Constructor for instantiating a new Grid
-	fn new(rows: i32, cols: i32, live: char, dead: char) -> Grid {
+	fn new(rows: i32, cols: i32, time: u64, live: char, dead: char) -> Grid {
 		Grid {
 			rows: rows,
 			cols: cols,
+			waitTime: time,
 			data: vec![],
 			liveState: live,
 			deadState: dead,
@@ -59,8 +65,8 @@ impl Grid {
 		let mut y = 0 as usize;
 
 		for a in 0..(cols * rows) {
-			let mut index: (usize, usize) = (x, y);
-			let mut adjacentCells: Vec<usize> = self.findNeighbors(index);
+			let index: (usize, usize) = (x, y);
+			let adjacentCells: Vec<usize> = self.findNeighbors(index);
 			self.data.push(Cell::new(self.deadState, index));
 			self.data[a as usize].neighbors = adjacentCells;
 
@@ -73,36 +79,9 @@ impl Grid {
 		}
 	}
 
-	// Lists out a Cell's neighbors' 1d index
-	fn showNeighborIndices(&mut self, twoDIndex: (usize, usize)) {
-		let index: usize = self.getIndexConversion(twoDIndex);
-		let neighbors = self.data[index].neighbors.to_vec();
-		let length: usize = neighbors.len();
-
-		for a in 0..length {
-			let adjacentIndex: usize = neighbors[a];
-			println!("{}",adjacentIndex);
-		}
-	}
-
-	// Finds a Cell's neighbors, marks them alive, and reveals them.
-	fn showNeighbors(&mut self, twoDIndex: (usize, usize)) {
-		let index: usize = self.getIndexConversion(twoDIndex);
-
-		let neighbors = self.data[index].neighbors.to_vec();
-		let length: usize = neighbors.len();
-		self.killAllCells();
-
-		for a in 0..length {
-			let adjacentIndex: usize = neighbors[a];
-			self.data[adjacentIndex].state = self.liveState;
-			self.data[adjacentIndex].isAlive = true;
-		}
-		self.printAllStates();
-	}
-
 	// Returns a vector containing the 1d indices of the neighbors
 	// of a Cell using the Cell's the 2d index.
+	#[allow(unused_parens)]
 	fn findNeighbors(&mut self, twoDIndex: (usize, usize)) -> Vec<usize> {
 		let mut adjacentCells: Vec<usize> = vec![];		
 		let (x,y) = twoDIndex;
@@ -112,7 +91,7 @@ impl Grid {
 			let mut b: i32 = -1;
 			while b != 2 {
 				// Skips 1 case when (a,b) = (0,0)
-				if (a != 0 || b != 0) {
+				if a != 0 || b != 0 {
 					// Checks to make sure (x+a,y+b) cannot reach
 					// IndexOutOfBounds (-1,-1) or (row, col)
 					if ( ((x as i32 + a) >= 0) && ((y as i32 + b) >= 0) 
@@ -187,19 +166,9 @@ impl Grid {
 			if a % self.cols == 0 {
 				println!("");
 			}
-			print!("[{}]",self.data[a as usize].state);
+			print!("{}|",self.data[a as usize].state);
 		}
 			println!("");
-	}
-
-	// Lists all 2d indices of the Cells in Grid
-	// Corresponding to the 1d index of Cells
-	fn printAllIndices(&mut self) {
-		let total = self.cols * self.rows;
-
-		for a in 0..total {
-			println!("[{}] = {:?}",a,self.data[a as usize].index);
-		}
 	}
 
 	// All Cells in Grid become aware of their fate in the next generation
@@ -219,34 +188,10 @@ impl Grid {
 		}
 	}
 
-	// Sets all Cell's nextLife to false and updates state.
-	fn killAllCells(&mut self) {
-		for a in 0..self.data.len() {
-			self.data[a as usize].nextLife = false;
-		}
-		self.updateCells();
-	}
-
-	// A simple test render of the Grid by filling
-	// each Cell's state one at a time.
-	// Thread delay is specified in wait time
-	fn testRender(&mut self) {
-		let total = self.cols * self.rows;
-
-		for a in 0..total {
-			self.data[a as usize].state = self.liveState;
-			self.printAllStates();
-
-			use std::{thread,time};
-			let wait = time::Duration::from_millis(25);
-			thread::sleep(wait);
-		}
-	}
-
 	// An entire "tick" of the Grid
 	fn renderAll(&mut self) {
 		use std::{thread,time};
-		let wait = time::Duration::from_millis(280);
+		let wait = time::Duration::from_millis(self.waitTime);
 
 		// Simultaneously impose all Cells to Conway's Life Rules
 		for a in 0..(self.cols * self.rows) {
@@ -270,34 +215,31 @@ impl Grid {
 	}
 }
 
-// World is a 1d vector treated as a 2d vector containing Cells.
-// The Initialize function will set default values and populate World.
-// Fill the vector will Cells that will calculate their neighbor's indices.
-// Then the world will constantly run a Render function in loop forever.
-// In the loop, the World will "tick".
-// First every Cell will simultaneous check its living neighbors.
-// Conway's 4 Rules will apply to the Cells to kill or resurrect them.
-// Then the living cells will move in some way via printAllStates. Repeat.
-fn main() {
 	// These seeds are alligned for 10 x 10
 	// Oscillator - Blinker
-	let seed1: [i32; 9] = [3, 13, 23, 28, 38,48,74,75,73];
+	#[allow(dead_code)]
+	static SEED1: [i32; 9] = [3, 13, 23, 28, 38,48,74,75,73];
 
 	// Oscillator - Toad
-	let seed3: [i32; 6] = [45,46,47,54,55,56];
+	#[allow(dead_code)]
+	static SEED2: [i32; 6] = [45,46,47,54,55,56];
 
 	// Oscillator - Beacon
-	let seed4: [i32; 6] = [45,46,55,68,77,78];
+	#[allow(dead_code)]
+	static SEED3: [i32; 6] = [45,46,55,68,77,78];
 	
 	// Spaceship - Glider
-	let seed5: [i32; 5] = [2,13,23,22,21];
+	#[allow(dead_code)]
+	static SEED4: [i32; 5] = [2,13,23,22,21];
 
 	// Weird Thing:
-	let seed2: [i32; 9] = [3,13,23,51,61,71,74,75,73];
+	#[allow(dead_code)]
+	static SEED5: [i32; 9] = [3,13,23,51,61,71,74,75,73];
 
 	// For a 20 x 20:	
 	// Oscillator - Pulsar
-	let seed6: [i32; 48] = [46,47,48,52,53,54,
+	#[allow(dead_code)]
+	static SEED6: [i32; 48] = [46,47,48,52,53,54,
 							146,147,148,152,153,154,
 							186,187,188,192,193,194,
 							286,287,288,292,293,294,
@@ -307,23 +249,22 @@ fn main() {
 							204,224,244,209,229,249,
 							211,231,251,216,236,256];
 
-	let mut world = Grid::new(20,20,'0',' ');
+// World contains a 1d vector treated as a 2d vector containing Cells.
+// The Initialize function will set default values and populate World.
+// Fill the vector will Cells that will calculate their neighbor's indices.
+// Then the world will constantly run a Render function in loop forever.
+// In the loop, the World will "tick".
+// First every Cell will simultaneous check its living neighbors.
+// Conway's 4 Rules will apply to the Cells to kill or resurrect them.
+// Then the living cells will move in some way via printAllStates. Repeat.
+#[allow(unused_variables)]
+fn main() {
+	// Grid params (row, col, delay in ms, live state, dead state)
+	let mut world = Grid::new(20,20,350,'■',' ');
 	world.initialize();
-	world.seedGrid(&seed6);
-	world.printAllStates();
+	world.seedGrid(&SEED6);
 
-	for a in 0..1000 {
+	loop {
 		world.renderAll();
 	}
-
-//	Testing methods below
-//	=====================
-//	world.printAllIndices();
-//	world.printAllStates();
-//	world.testRender();
-//	world.killAllCells();
-//	world.printAllStates();
-//	world.showNeighbors((4,4));
-//	world.conwaysLife(55);
-//	world.showNeighborIndices((2,2));
 }
