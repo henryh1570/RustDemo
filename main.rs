@@ -260,7 +260,8 @@ impl Grid {
 #[allow(unused_variables)]
 fn main() {
 	// Grid params (row, col, delay in ms, live state, dead state)
-	let mut world = Grid::new(20,20,350,'■',' ');
+	// Some UTF-8 chars:'◈' '◎' 'փ' '۩' '⁂' '☮' '⚡' '♬' '✿' '✮' '⧖' '■'
+	let mut world = Grid::new(20,20,350,'✿',' ');
 	world.initialize();
 	world.seedGrid(&SEED6);
 
