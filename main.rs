@@ -246,7 +246,7 @@ impl Grid {
 	// An entire "tick" of the Grid
 	fn renderAll(&mut self) {
 		use std::{thread,time};
-		let wait = time::Duration::from_millis(155);
+		let wait = time::Duration::from_millis(280);
 
 		// Simultaneously impose all Cells to Conway's Life Rules
 		for a in 0..(self.cols * self.rows) {
@@ -279,14 +279,43 @@ impl Grid {
 // Conway's 4 Rules will apply to the Cells to kill or resurrect them.
 // Then the living cells will move in some way via printAllStates. Repeat.
 fn main() {
-	let mut world = Grid::new(10,10,'0',' ');
-	let seed: [i32; 6] = [88, 33, 32, 34, 68,78];
+	// These seeds are alligned for 10 x 10
+	// Oscillator - Blinker
+	let seed1: [i32; 9] = [3, 13, 23, 28, 38,48,74,75,73];
+
+	// Oscillator - Toad
+	let seed3: [i32; 6] = [45,46,47,54,55,56];
+
+	// Oscillator - Beacon
+	let seed4: [i32; 6] = [45,46,55,68,77,78];
+	
+	// Spaceship - Glider
+	let seed5: [i32; 5] = [2,13,23,22,21];
+
+	// Weird Thing:
+	let seed2: [i32; 9] = [3,13,23,51,61,71,74,75,73];
+
+	// For a 20 x 20:	
+	// Oscillator - Pulsar
+	let seed6: [i32; 48] = [46,47,48,52,53,54,
+							146,147,148,152,153,154,
+							186,187,188,192,193,194,
+							286,287,288,292,293,294,
+							//Vertical bars
+							84,104,124, 89,109,129,
+							91,111,131,96,116,136,
+							204,224,244,209,229,249,
+							211,231,251,216,236,256];
+
+	let mut world = Grid::new(20,20,'0',' ');
 	world.initialize();
-	world.seedGrid(&seed);
+	world.seedGrid(&seed6);
 	world.printAllStates();
-	for a in 0..100 {
+
+	for a in 0..1000 {
 		world.renderAll();
 	}
+
 //	Testing methods below
 //	=====================
 //	world.printAllIndices();
